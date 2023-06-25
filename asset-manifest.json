@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/chatp2p/static/css/main.b5e08402.css",
+    "main.js": "/chatp2p/static/js/main.8472079a.js",
+    "index.html": "/chatp2p/index.html",
+    "main.b5e08402.css.map": "/chatp2p/static/css/main.b5e08402.css.map",
+    "main.8472079a.js.map": "/chatp2p/static/js/main.8472079a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b5e08402.css",
+    "static/js/main.8472079a.js"
+  ]
+}
