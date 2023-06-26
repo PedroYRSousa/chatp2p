@@ -27,10 +27,14 @@ function encrypt(message: string, secretKey: string): string {
 	return des;
 }
 
-function decrypt(message: string, secretKey: string): string {
-	const des = cryptoJs.TripleDES.decrypt(message, secretKey).toString(cryptoJs.enc.Utf8);
-	const aes = cryptoJs.AES.decrypt(des, secretKey).toString(cryptoJs.enc.Utf8);
-	return aes;
+function decrypt(message: string, secretKey: string): string | undefined {
+	try {
+		const des = cryptoJs.TripleDES.decrypt(message, secretKey).toString(cryptoJs.enc.Utf8);
+		const aes = cryptoJs.AES.decrypt(des, secretKey).toString(cryptoJs.enc.Utf8);
+		return aes;
+	} catch {
+		return undefined;
+	}
 }
 
 function Home() {
@@ -49,26 +53,6 @@ function Home() {
 		enableLocalDatastore: true,
 		enableLiveQuery: true,
 	});
-	const res = results
-		?.sort((a: any, b: any) => a.get('createdAt') - b.get('createdAt'))
-		.map((result: any) => {
-			const objectId = result.get('objectId');
-			const author = result.get('author');
-			const type = result.get('type');
-			let content = result.get('content');
-			const identify = result.get('identify');
-			const encrypted = result.get('encrypted');
-
-			console.log(encrypted);
-			console.log(content);
-			const secretKey = getSecretKey();
-			if (encrypted === true && secretKey !== undefined) content = decrypt(content, secretKey);
-
-			return { objectId, content, type, author, identify, encrypted };
-		});
-	if (res !== undefined) {
-		messages = [...messages, ...res];
-	}
 
 	const sendMessageToBackEnd = async (message: IMessage) => {
 		try {
@@ -118,6 +102,7 @@ function Home() {
 		const message = getMessage();
 		let content = message;
 		if (message === undefined) return;
+		if (message.length === 0) return;
 		if (content === undefined) return;
 
 		const author = getAuthor();
@@ -163,18 +148,45 @@ function Home() {
 	return (
 		<main>
 			<section ref={messageContentRef} id="message-content">
-				{messages.map((message: IMessage) => {
-					return (
-						<div key={message.objectId} className={`message-content-item ${message.identify === myId ? 'my-message' : ''}`}>
-							<div className="message-content-item-author">
-								<span className={`w3-tag w3-round ${message.identify === myId ? 'w3-green' : 'w3-red'}`}>{message.author}</span>
+				{results
+					?.sort((a: any, b: any) => a.get('createdAt') - b.get('createdAt'))
+					.filter((result: any) => {
+						const objectId = result.get('objectId');
+						const identify = result.get('identify');
+
+						for (let index = 0; index < messages.length; index++) {
+							if (objectId === messages[index].objectId) return false;
+						}
+
+						if (identify !== myId) return false;
+
+						return true;
+					})
+					.map((result: any) => {
+						const objectId = result.get('objectId');
+						const author = result.get('author');
+						const type = result.get('type');
+						let content = result.get('content');
+						const identify = result.get('identify');
+						const encrypted = result.get('encrypted');
+
+						const secretKey = getSecretKey();
+						if (encrypted === true && secretKey !== undefined) {
+							const contentDecrypted = decrypt(content, secretKey);
+							if (contentDecrypted !== undefined && contentDecrypted.length !== 0) content = contentDecrypted;
+						}
+
+						return (
+							<div key={objectId} className={`message-content-item ${identify === myId ? 'my-message' : ''}`}>
+								<div className="message-content-item-author">
+									<span className={`w3-tag w3-round ${identify === myId ? 'w3-green' : 'w3-red'}`}>{author}</span>
+								</div>
+								<div className={`w3-card w3-round w3-padding ${identify === myId ? 'w3-black' : 'w3-white'}`}>
+									{createElementMessage({ objectId, author, type, content, identify, encrypted })}
+								</div>
 							</div>
-							<div className={`w3-card w3-round w3-padding ${message.identify === myId ? 'w3-black' : 'w3-white'}`}>
-								{createElementMessage(message)}
-							</div>
-						</div>
-					);
-				})}
+						);
+					})}
 			</section>
 			<section id="message-input">
 				<div id="message-input-infos">
