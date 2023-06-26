@@ -59,7 +59,10 @@ function Home() {
 			const identify = result.get('identify');
 			const encrypted = result.get('encrypted');
 
-			if (encrypted === true) content = decrypt(content, secretKeyRef.current.value);
+			console.log(encrypted);
+			console.log(content);
+			const secretKey = getSecretKey();
+			if (encrypted === true && secretKey !== undefined) content = decrypt(content, secretKey);
 
 			return { objectId, content, type, author, identify, encrypted };
 		});
@@ -69,13 +72,14 @@ function Home() {
 
 	const sendMessageToBackEnd = async (message: IMessage) => {
 		try {
-			const { author, content, type } = message;
+			const { author, content, type, encrypted } = message;
 
 			let Message = new Parse.Object('Message');
 			Message.set('content', content);
 			Message.set('author', author);
 			Message.set('type', type);
 			Message.set('identify', myId);
+			Message.set('encrypted', encrypted);
 			await Message.save();
 
 			messageRef.current.value = '';
