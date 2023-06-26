@@ -4,4 +4,5 @@ export default interface IMessage {
 	content: string;
 	author: string;
 	identify: string;
+	encrypted: boolean | undefined;
 }

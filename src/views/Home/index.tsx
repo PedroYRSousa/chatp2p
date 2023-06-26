@@ -55,10 +55,13 @@ function Home() {
 			const objectId = result.get('objectId');
 			const author = result.get('author');
 			const type = result.get('type');
-			const content = result.get('content');
+			let content = result.get('content');
 			const identify = result.get('identify');
+			const encrypted = result.get('encrypted');
 
-			return { objectId, content, type, author, identify };
+			if (encrypted === true) content = decrypt(content, secretKeyRef.current.value);
+
+			return { objectId, content, type, author, identify, encrypted };
 		});
 	if (res !== undefined) {
 		messages = [...messages, ...res];
@@ -124,12 +127,20 @@ function Home() {
 			content,
 			identify: myId,
 			objectId: '',
+			encrypted: secretKey !== undefined,
 			type: 'text',
 		});
 
 		messages = [
 			...messages,
-			{ objectId: cryptoJs.SHA256(message + Date.now().toString()).toString(), content: message, type: 'text', author: 'you', identify: myId },
+			{
+				objectId: cryptoJs.SHA256(message + Date.now().toString()).toString(),
+				content: message,
+				type: 'text',
+				author: 'you',
+				identify: myId,
+				encrypted: secretKey !== undefined,
+			},
 		];
 	}
 
