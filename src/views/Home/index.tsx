@@ -158,8 +158,6 @@ function Home() {
 							if (objectId === messages[index].objectId) return false;
 						}
 
-						if (identify !== myId) return false;
-
 						return true;
 					})
 					.map((result: any) => {
