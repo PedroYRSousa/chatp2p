@@ -3,4 +3,5 @@ export default interface IMessage {
 	type: string;
 	content: string;
 	author: string;
+	identify: string;
 }
